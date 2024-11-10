@@ -1,9 +1,15 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::cmp::max;
 
+enum State {
+    Evaluated(f64),
+    Expired,
+}
+
 struct HyperLogLog<H: Hasher> {
     registers: Vec<u8>,
     hasher: H,
+    state: State,
 }
 
 impl HyperLogLog<DefaultHasher> {
@@ -11,15 +17,23 @@ impl HyperLogLog<DefaultHasher> {
         Self {
             registers: vec![0; 1 << 8],
             hasher: DefaultHasher::new(),
+            state: State::Expired,
         }
     }
 
-    pub fn evaluate(&self) -> f64 {
-        let sum: f64 = self.registers
-            .iter()
-            .map(|&x| x as f64)
-            .sum();
-        sum / (1 << 8) as f64
+    pub fn evaluate(&mut self) -> f64 {
+        if let State::Evaluated(eval) = self.state {
+            eval
+        } else {
+            let sum: f64 = self.registers
+                .iter()
+                .map(|&x| x as f64)
+                .sum();
+            let eval = sum / (1 << 8) as f64;
+
+            self.state = State::Evaluated(eval);
+            eval
+        }
     }
 
     pub fn insert<V: Hash>(&mut self, elem: V) {
