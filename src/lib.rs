@@ -54,6 +54,7 @@ impl<H: Hasher> HyperLogLog<H> {
         Self {
             registers: vec![0; 1 << 8],
             hasher,
+            state: State::Expired,
         }
     }
 }
