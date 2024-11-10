@@ -1,0 +1,9 @@
+[package]
+name = "hyperloglog"
+version = "0.1.0"
+edition = "2021"
+authors = ["Alex Holmes <alex@sed.dev>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[dependencies]
