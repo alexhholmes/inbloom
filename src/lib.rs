@@ -1,12 +1,12 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::cmp::max;
 
-struct HyperLogLog {
+struct HyperLogLog<H: Hasher> {
     registers: Vec<u8>,
-    hasher: DefaultHasher,
+    hasher: H,
 }
 
-impl HyperLogLog {
+impl HyperLogLog<DefaultHasher> {
     pub fn new() -> Self {
         Self {
             registers: vec![0; 1 << 8],
@@ -22,7 +22,7 @@ impl HyperLogLog {
         sum / (1 << 8) as f64
     }
 
-    pub fn insert(&mut self, elem: &[u8]) {
+    pub fn insert<V: Hash>(&mut self, elem: V) {
         elem.hash(&mut self.hasher);
         let h = self.hasher.finish();
         let r = ((0xFF & h) >> 56) as usize;
@@ -31,6 +31,15 @@ impl HyperLogLog {
 
     pub fn merge(&mut self, other: &Self) {
         unimplemented!()
+    }
+}
+
+impl<H: Hasher> HyperLogLog<H> {
+    pub fn new_with_hasher(hasher: H) -> Self {
+        Self {
+            registers: vec![0; 1 << 8],
+            hasher,
+        }
     }
 }
 
