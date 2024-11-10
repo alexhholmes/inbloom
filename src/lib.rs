@@ -41,6 +41,7 @@ impl HyperLogLog<DefaultHasher> {
         let hash = self.hasher.finish();
         let register = ((0xFF & hash) >> 56) as usize;
         self.registers[register] = max(self.registers[register], hash.leading_zeros() as u8);
+        self.state = State::Expired;
     }
 
     pub fn merge(&mut self, other: &Self) {
