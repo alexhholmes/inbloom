@@ -24,9 +24,9 @@ impl HyperLogLog<DefaultHasher> {
 
     pub fn insert<V: Hash>(&mut self, elem: V) {
         elem.hash(&mut self.hasher);
-        let h = self.hasher.finish();
-        let r = ((0xFF & h) >> 56) as usize;
-        self.registers[r] = max(self.registers[r], h.leading_zeros() as u8);
+        let hash = self.hasher.finish();
+        let register = ((0xFF & hash) >> 56) as usize;
+        self.registers[register] = max(self.registers[register], hash.leading_zeros() as u8);
     }
 
     pub fn merge(&mut self, other: &Self) {
