@@ -7,16 +7,16 @@ enum Cardinality {
 }
 
 pub struct HyperLogLog<H: Hasher> {
-    registers: Vec<u8>,
     hasher: H,
+    registers: Vec<u8>,
     cardinality: Cardinality,
 }
 
 impl HyperLogLog<DefaultHasher> {
     pub fn new() -> Self {
         Self {
-            registers: vec![0; 1 << 8],
             hasher: DefaultHasher::new(),
+            registers: vec![0; 1 << 8],
             cardinality: Cardinality::Expired,
         }
     }
@@ -54,8 +54,8 @@ impl HyperLogLog<DefaultHasher> {
 impl<H: Hasher> HyperLogLog<H> {
     pub fn new_with_hasher(hasher: H) -> Self {
         Self {
-            registers: vec![0; 1 << 8],
             hasher,
+            registers: vec![0; 1 << 8],
             cardinality: Cardinality::Expired,
         }
     }
