@@ -6,7 +6,7 @@ enum State {
     Expired,
 }
 
-struct HyperLogLog<H: Hasher> {
+pub struct HyperLogLog<H: Hasher> {
     registers: Vec<u8>,
     hasher: H,
     state: State,
@@ -22,17 +22,17 @@ impl HyperLogLog<DefaultHasher> {
     }
 
     pub fn evaluate(&mut self) -> f64 {
-        if let State::Evaluated(eval) = self.state {
-            eval
-        } else {
-            let sum: f64 = self.registers
-                .iter()
-                .map(|&x| x as f64)
-                .sum();
-            let eval = sum / (1 << 8) as f64;
-
-            self.state = State::Evaluated(eval);
-            eval
+        match self.state {
+            State::Evaluated(eval) => eval,
+            State::Expired => {
+                let sum: f64 = self.registers
+                    .iter()
+                    .map(|&x| x as f64)
+                    .sum();
+                let eval = sum / (1 << 8) as f64;
+                self.state = State::Evaluated(eval);
+                eval
+            }
         }
     }
 
@@ -45,7 +45,9 @@ impl HyperLogLog<DefaultHasher> {
     }
 
     pub fn merge(&mut self, other: &Self) {
-        unimplemented!()
+        for (idx, reg) in other.registers.iter().enumerate() {
+            self.registers[idx] = max(self.registers[idx], *reg)
+        }
     }
 }
 
