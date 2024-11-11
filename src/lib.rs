@@ -1,5 +1,5 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::cmp;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug)]
@@ -18,7 +18,7 @@ pub struct HyperLogLog<H: Hasher + Default, const R: u8> {
 impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
     const _ASSERT_VALID_R: () = assert!(R > 3 && R < 17);
 
-    pub fn new_with_hasher() -> Self {
+    pub fn with_hasher() -> Self {
         let _ = Self::_ASSERT_VALID_R;
         Self {
             registers: vec![0; 1 << R],
@@ -60,13 +60,13 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
 
 impl<const R: u8> HyperLogLog<DefaultHasher, R> {
     fn new() -> Self {
-        HyperLogLog::<DefaultHasher, R>::new_with_hasher()
+        HyperLogLog::<DefaultHasher, R>::with_hasher()
     }
 }
 
 impl Default for HyperLogLog<DefaultHasher, 8> {
     fn default() -> Self {
-        Self::new_with_hasher()
+        Self::with_hasher()
     }
 }
 
