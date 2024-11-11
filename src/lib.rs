@@ -53,10 +53,6 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
             }
         }
     }
-
-    const fn assert_valid_r() {
-        let _ = [(); (R < 17) as usize - 1];
-    }
 }
 
 impl Default for HyperLogLog<DefaultHasher, 8> {
@@ -71,7 +67,7 @@ mod tests {
 
     #[test]
     fn test_insert() {
-        let mut hll = HyperLogLog::<_, 8>::new();
+        let mut hll = HyperLogLog::<_, 8>::default();
         hll.insert("test1".as_bytes());
         println!("{}", hll.evaluate())
     }
