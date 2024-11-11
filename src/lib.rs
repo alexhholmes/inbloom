@@ -1,5 +1,5 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::cmp::max;
+use std::cmp;
 
 #[derive(Copy, Clone, Debug)]
 enum Cardinality {
@@ -27,13 +27,13 @@ impl<H: Hasher, const R: u8> HyperLogLog<H, R> {
         elem.hash(&mut self.hasher);
         let hash = self.hasher.finish();
         let register = ((0xFF & hash) >> 56) as usize;
-        self.registers[register] = max(self.registers[register], hash.leading_zeros() as u8);
+        self.registers[register] = cmp::max(self.registers[register], hash.leading_zeros() as u8);
         self.cardinality = Cardinality::Expired;
     }
 
     pub fn merge(&mut self, other: &Self) {
         for (idx, reg) in other.registers.iter().enumerate() {
-            self.registers[idx] = max(self.registers[idx], *reg)
+            self.registers[idx] = cmp::max(self.registers[idx], *reg)
         }
     }
 
@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_insert() {
-        let mut hll = HyperLogLog::new();
+        let mut hll = HyperLogLog::<_, 8>::new();
         hll.insert("test1".as_bytes());
         println!("{}", hll.evaluate())
     }
