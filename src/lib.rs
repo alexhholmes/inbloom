@@ -16,6 +16,8 @@ pub struct HyperLogLog<H: Hasher + Default, const R: u8> {
 }
 
 impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
+    const _ASSERT_VALID_R: () = assert!(R > 3 && R < 17);
+
     pub fn new() -> Self {
         Self {
             registers: vec![0; 1 << R],
