@@ -26,7 +26,7 @@ impl<H: Hasher, const R: u8> HyperLogLog<H, R> {
     pub fn insert<V: Hash>(&mut self, elem: V) {
         elem.hash(&mut self.hasher);
         let hash = self.hasher.finish();
-        let register = ((0xFF & hash) >> 56) as usize;
+        let register = ((1 << R & hash) >> 56) as usize;
         self.registers[register] = cmp::max(self.registers[register], hash.leading_zeros() as u8);
         self.cardinality = Cardinality::Expired;
     }
@@ -45,7 +45,7 @@ impl<H: Hasher, const R: u8> HyperLogLog<H, R> {
                     .iter()
                     .map(|&x| x as f64)
                     .sum();
-                let avg = sum / (1 << 8) as f64;
+                let avg = sum / (1 << R) as f64;
                 self.cardinality = Cardinality::Evaluated(avg);
                 avg
             }
@@ -59,7 +59,7 @@ impl<const R: u8> HyperLogLog<DefaultHasher, R> {
     }
 }
 
-impl<const R: u8> Default for HyperLogLog<DefaultHasher, R> {
+impl Default for HyperLogLog<DefaultHasher, 8> {
     fn default() -> Self {
         Self::new()
     }
