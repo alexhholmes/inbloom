@@ -1,38 +1,25 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::cmp::max;
 
+#[derive(Copy, Clone, Debug)]
 enum Cardinality {
     Evaluated(f64),
     Expired,
 }
 
+#[derive(Clone, Debug)]
 pub struct HyperLogLog<H: Hasher> {
     hasher: H,
     registers: Vec<u8>,
     cardinality: Cardinality,
 }
 
-impl HyperLogLog<DefaultHasher> {
-    pub fn new() -> Self {
+impl<H: Hasher> HyperLogLog<H> {
+    pub fn new_with_hasher(hasher: H) -> Self {
         Self {
-            hasher: DefaultHasher::new(),
+            hasher,
             registers: vec![0; 1 << 8],
             cardinality: Cardinality::Expired,
-        }
-    }
-
-    pub fn evaluate(&mut self) -> f64 {
-        match self.cardinality {
-            Cardinality::Evaluated(eval) => eval,
-            Cardinality::Expired => {
-                let sum: f64 = self.registers
-                    .iter()
-                    .map(|&x| x as f64)
-                    .sum();
-                let eval = sum / (1 << 8) as f64;
-                self.cardinality = Cardinality::Evaluated(eval);
-                eval
-            }
         }
     }
 
@@ -49,15 +36,32 @@ impl HyperLogLog<DefaultHasher> {
             self.registers[idx] = max(self.registers[idx], *reg)
         }
     }
+
+    pub fn evaluate(&mut self) -> f64 {
+        match self.cardinality {
+            Cardinality::Evaluated(eval) => eval,
+            Cardinality::Expired => {
+                let sum: f64 = self.registers
+                    .iter()
+                    .map(|&x| x as f64)
+                    .sum();
+                let avg = sum / (1 << 8) as f64;
+                self.cardinality = Cardinality::Evaluated(avg);
+                avg
+            }
+        }
+    }
 }
 
-impl<H: Hasher> HyperLogLog<H> {
-    pub fn new_with_hasher(hasher: H) -> Self {
-        Self {
-            hasher,
-            registers: vec![0; 1 << 8],
-            cardinality: Cardinality::Expired,
-        }
+impl HyperLogLog<DefaultHasher> {
+    pub fn new() -> Self {
+        Self::new_with_hasher(DefaultHasher::new())
+    }
+}
+
+impl Default for HyperLogLog<DefaultHasher> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
