@@ -19,6 +19,7 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
     const _ASSERT_VALID_R: () = assert!(R > 3 && R < 17);
 
     pub fn new() -> Self {
+        let _ = Self::_ASSERT_VALID_R;
         Self {
             registers: vec![0; 1 << R],
             cardinality: Cardinality::Expired,
@@ -69,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_insert() {
-        let mut hll = HyperLogLog::<_, 8>::default();
+        let mut hll = HyperLogLog::default();
         hll.insert("test1".as_bytes());
         println!("{}", hll.evaluate())
     }
