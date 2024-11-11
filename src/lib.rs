@@ -32,7 +32,7 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
         elem.hash(&mut hasher);
         let hash = hasher.finish();
         let register = (hash >> (64 - R)) as usize;
-        self.registers[register] = cmp::max(self.registers[register], hash.leading_zeros() as u8);
+        self.registers[register] = cmp::max(self.registers[register], (hash << R).leading_zeros() as u8);
         self.cardinality = Cardinality::Expired;
     }
 
