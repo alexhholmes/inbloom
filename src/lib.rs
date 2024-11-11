@@ -12,7 +12,7 @@ enum Cardinality {
 pub struct HyperLogLog<H: Hasher + Default, const R: u8> {
     registers: Vec<u8>,
     cardinality: Cardinality,
-    _marker: PhantomData<H>,
+    _hasher: PhantomData<H>,
 }
 
 impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
@@ -20,7 +20,7 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
         Self {
             registers: vec![0; 1 << R],
             cardinality: Cardinality::Expired,
-            _marker: Default::default(),
+            _hasher: Default::default(),
         }
     }
 
