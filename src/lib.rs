@@ -1,5 +1,6 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::cmp;
+use std::marker::PhantomData;
 
 #[derive(Copy, Clone, Debug)]
 enum Cardinality {
@@ -8,25 +9,26 @@ enum Cardinality {
 }
 
 #[derive(Clone, Debug)]
-pub struct HyperLogLog<H: Hasher, const R: u8> {
-    hasher: H,
+pub struct HyperLogLog<H: Hasher + Default, const R: u8> {
     registers: Vec<u8>,
     cardinality: Cardinality,
+    _marker: PhantomData<H>,
 }
 
-impl<H: Hasher, const R: u8> HyperLogLog<H, R> {
-    pub fn new_with_hasher(hasher: H) -> Self {
+impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
+    pub fn new() -> Self {
         Self {
-            hasher,
             registers: vec![0; 1 << R],
             cardinality: Cardinality::Expired,
+            _marker: Default::default(),
         }
     }
 
     pub fn insert<V: Hash>(&mut self, elem: V) {
-        elem.hash(&mut self.hasher);
-        let hash = self.hasher.finish();
-        let register = ((1 << R & hash) >> 56) as usize;
+        let mut hasher = H::default();
+        elem.hash(&mut hasher);
+        let hash = hasher.finish();
+        let register = (hash >> (64 - R)) as usize;
         self.registers[register] = cmp::max(self.registers[register], hash.leading_zeros() as u8);
         self.cardinality = Cardinality::Expired;
     }
@@ -50,12 +52,6 @@ impl<H: Hasher, const R: u8> HyperLogLog<H, R> {
                 avg
             }
         }
-    }
-}
-
-impl<const R: u8> HyperLogLog<DefaultHasher, R> {
-    pub fn new() -> Self {
-        Self::new_with_hasher(DefaultHasher::new())
     }
 }
 
