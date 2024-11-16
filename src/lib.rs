@@ -12,18 +12,18 @@ enum Cardinality {
 pub struct HyperLogLog<H: Hasher + Default, const R: u8> {
     registers: Vec<u8>,
     cardinality: Cardinality,
-    _hasher: PhantomData<H>,
+    hasher: PhantomData<H>,
 }
 
 impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
-    const _ASSERT_VALID_R: () = assert!(R > 3 && R < 17);
+    const ASSERT_VALID_R: () = assert!(R > 3 && R < 17);
 
     pub fn with_hasher() -> Self {
-        let _ = Self::_ASSERT_VALID_R;
+        let _ = Self::ASSERT_VALID_R;
         Self {
             registers: vec![0; 1 << R],
             cardinality: Cardinality::Expired,
-            _hasher: Default::default(),
+            hasher: Default::default(),
         }
     }
 
@@ -55,6 +55,11 @@ impl<H: Hasher + Default, const R: u8> HyperLogLog<H, R> {
                 avg
             }
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.registers.fill(0);
+        self.cardinality = Cardinality::Expired;
     }
 }
 
